@@ -1,1 +1,12 @@
 test <- read.csv("https://www.dropbox.com/scl/fi/gcsk0cyyh81xdqgc9l049/auto.csv?rlkey=8mkzoxzgr0tsspu6pd818anpg&dl=0")
+
+# load excel reader
+library(readxl)
+
+# regional 
+test2 <- read_xls("https://www.dropbox.com/scl/fi/8amb27v92fyho2lbuay4c/Regional.ods?rlkey=4t5p2bhcujcxzis3nmpyrxfcr&dl=0")
+
+# ethnicity 
+test3 <- read_xls("https://www.dropbox.com/scl/fi/jmib7bqtddnn0mtlldwoo/EthnicOrigin.ods?rlkey=ouewyar91aal8lb9hzs7tf9fm&dl=0")
+
+# food survey and you 
