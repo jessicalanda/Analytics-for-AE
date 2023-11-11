@@ -1,0 +1,101 @@
+# load packages 
+library(haven)
+library(dplyr)
+library(ggplot2)
+my_data <- read_dta()
+
+# vegetable as dummy
+my_data_test<-my_data%>%filter(hhdinc>0,q2_14s14_dv>0)
+my_data_test$hhdinc[my_data_test$hhdinc == 1] <- 0
+my_data_test$hhdinc[my_data_test$hhdinc == 2] <- 10400
+my_data_test$hhdinc[my_data_test$hhdinc == 3] <- 26000
+my_data_test$hhdinc[my_data_test$hhdinc == 4] <- 52000
+my_data_test$vegetable<- as.numeric(my_data_test$q2_14s14_dv<=3)
+summary(my_data_test$vegetable)
+
+ggplot(data=my_data_test, aes(x=hhdinc, y=vegetable))+geom_point()+
+  geom_smooth(method="lm")+
+  geom_jitter(width=0.2, height=0.2)+
+  theme_minimal()
+LM<-lm(vegetable~hhdinc,my_data_test)
+summary(LM)
+#vegetable as frequency
+my_data_test<-my_data_test%>% 
+  mutate(ve_fq= case_when(
+    q2_14s14_dv == 1 ~ 30,  
+    q2_14s14_dv == 2 ~ 20,
+    q2_14s14_dv == 3 ~ 12,
+    q2_14s14_dv == 4 ~ 6,
+    q2_14s14_dv == 5 ~ 2,
+    q2_14s14_dv == 6 ~ 1,
+    q2_14s14_dv == 7 ~ 0.5,
+    q2_14s14_dv == 8 ~ 0
+  ))
+
+ggplot(data=my_data_test, aes(x=hhdinc, y=ve_fq))+geom_point()+
+  geom_smooth(method="lm")+
+  geom_jitter(width=1000, height=2)+
+  theme_minimal()
+LM1<-lm(ve_fq~hhdinc,my_data_test)
+summary(LM1)
+
+# with more controlled variable
+my_data_test1<-my_data_test%>%filter( age_dv>0,RespSex>0,hqual>0,bethnicity>0, region_dv>0,ru11ind_dv>0)
+my_data_test1<-my_data_test1%>%rename(Ethnicity=bethnicity)
+my_data_test1<-my_data_test1%>%rename(region=region_dv)
+my_data_test1<-my_data_test1%>%rename(rural=ru11ind_dv)
+
+my_data_test1<-my_data_test1%>% 
+  mutate(age=case_when(
+    age_dv == 1 ~ 16,  
+    age_dv == 2 ~ 25,
+    age_dv == 3 ~ 35,
+    age_dv == 4 ~ 45,
+    age_dv == 5 ~ 55,
+    age_dv == 6 ~ 65,
+    age_dv == 7 ~ 75
+    ))
+my_data_test1$Ethnicity<-as.numeric(my_data_test1$Ethnicity==1)
+my_data_test1$RespSex<-as.numeric(my_data_test1$RespSex==1)
+my_data_test1$rural<-as.numeric(my_data_test1$rural==2)
+my_data_test1 <- my_data_test1 %>%
+  mutate(
+    DegreeQualification = as.numeric(hqual == 1),
+    OtherQualification = as.numeric(hqual == 2),
+    NoQualifications = as.numeric(hqual == 3)
+  )
+
+LM3<-lm(ve_fq~hhdinc+age+RespSex+DegreeQualification+OtherQualification+Ethnicity+rural,my_data_test1)
+summary(LM3)
+# test education 
+LM4<-lm(hhdinc~DegreeQualification+OtherQualification,my_data_test1)
+summary(LM4)
+# test sample change
+LM5<-lm(ve_fq~hhdinc,my_data_test1)
+summary(LM5)
+
+# bigger sample test
+my_data_test2<-my_data_test%>%filter(age_dv>0,RespSex>0,hqual>0)
+my_data_test2<-my_data_test2%>% 
+  mutate(age=case_when(
+    age_dv == 1 ~ 16,  
+    age_dv == 2 ~ 25,
+    age_dv == 3 ~ 35,
+    age_dv == 4 ~ 45,
+    age_dv == 5 ~ 55,
+    age_dv == 6 ~ 65,
+    age_dv == 7 ~ 75
+  ))
+my_data_test2 <- my_data_test2 %>%
+  mutate(
+    DegreeQualification = as.numeric(hqual == 1),
+    OtherQualification = as.numeric(hqual == 2),
+    NoQualifications = as.numeric(hqual == 3)
+  )
+my_data_test2$RespSex<-as.numeric(my_data_test2$RespSex==1)
+LM6<-lm(ve_fq~hhdinc+age_dv+DegreeQualification+OtherQualification+RespSex,my_data_test2)
+summary(LM6)
+
+
+
+
